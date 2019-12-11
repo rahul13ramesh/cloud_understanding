@@ -12,9 +12,9 @@ class View(nn.Module):
 
 
 class ConvModel(nn.Module):
-    def __init__(self):
+    def __init__(self, dropval=0.5, l1=32, l2=64, l3=128):
         super().__init__()
-        d = 0.5
+        d = dropval  # Prob tat element is zeroes
 
         def convbn(ci, co, ksz, s=1, pz=0):
             return nn.Sequential(
@@ -23,20 +23,19 @@ class ConvModel(nn.Module):
                 nn.BatchNorm2d(co))
 
         self.m = nn.Sequential(
-            # nn.Dropout(0.2),
-            convbn(3, 64, 3, 1, 1),
-            convbn(64, 64, 3, 1, 1),
-            convbn(64, 64, 3, 1, 1),
-            convbn(64, 64, 3, 1, 1),
+            convbn(3, l1, 3, 1, 1),
+            convbn(l1, l1, 3, 1, 1),
+            convbn(l1, l1, 3, 1, 1),
+            convbn(l1, l1, 3, 1, 1),
             nn.Dropout(d),
             nn.AvgPool2d(2),
-            convbn(64, 128, 3, 1, 1),
-            convbn(128, 128, 3, 1, 1),
-            convbn(128, 128, 3, 1, 1),
+            convbn(l1, l2, 3, 1, 1),
+            convbn(l2, l2, 3, 1, 1),
+            convbn(l2, l2, 3, 1, 1),
             nn.Dropout(d),
-            convbn(128, 256, 3, 1, 1),
-            convbn(256, 256, 3, 1, 1),
-            convbn(256, 256, 1, 2, 1),
+            convbn(l2, l3, 3, 1, 1),
+            convbn(l3, l3, 3, 1, 1),
+            convbn(l3, l3, 1, 2, 1),
             nn.AvgPool2d(8),
             View(6144),
             nn.Linear(6144, 4),
