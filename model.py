@@ -6,8 +6,6 @@ import torch.nn.functional as F
 
 
 class double_conv(nn.Module):
-    """(conv => BN => ReLU) * 2"""
-
     def __init__(self, in_ch, out_ch):
         super(double_conv, self).__init__()
         self.conv = nn.Sequential(
@@ -57,13 +55,9 @@ class up(nn.Module):
 
     def forward(self, x1, x2):
         x1 = self.up(x1)
-
-        # input is CHW
         diffY = x2.size()[2] - x1.size()[2]
         diffX = x2.size()[3] - x1.size()[3]
-
         x1 = F.pad(x1, (diffX // 2, diffX - diffX // 2, diffY // 2, diffY - diffY // 2))
-        
         x = torch.cat([x2, x1], dim=1)
         return self.conv(x)
 
