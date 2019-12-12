@@ -100,6 +100,7 @@ for epoch in range(1, n_epochs+1):
     all_data = all_data[indices]
     labels = labels[indices]
     train_loss = 0.0
+    numpts = len(all_data)
 
     for i in range(0, numpts, batch_size):
         data = all_data[i:i+batch_size]

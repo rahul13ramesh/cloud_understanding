@@ -9,9 +9,7 @@ from models.model_classifier import ConvModel
 from data_fetch import get_data
 
 torch.manual_seed(100)
-
-num_points_fetch = -1
-train_on_gpu = True
+num_points_fetch = -1 train_on_gpu = True
 n_epochs = 50
 batch_size = 4
 train_num_pts = 4800
@@ -89,6 +87,7 @@ for epoch in range(1, n_epochs+1):
 
     model.train()
     train_loss = 0.0
+    numpts = len(all_data)
     for i in range(0, numpts, batch_size):
         data = all_data[i:i+batch_size]
         target = labels[i:i+batch_size]
