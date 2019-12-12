@@ -41,8 +41,29 @@ def dice_BCE(inp, target):
     return alpha * loss1 + loss2
 
 
-def boundary_distance(inp, target):
-    pass
+def boundary_distance_BCE(inp, target, weights):
+    # Smoothing needed to avoid divide by 0 error
+    smooth = 1.0
+    flattened_inp = inp.view(-1)
+    flattened_target = target.view(-1)
+    flattened_weights = weights.view(-1)
+    criterion = nn.BCELoss(reduce=False)
+    loss = criterion(flattened_inp, flattened_target)
+    loss = (loss * flattened_weights).mean()
+    return loss
+
+
+def boundary_distance_dice(inp, target, weights):
+    # Smoothing needed to avoid divide by 0 error
+    smooth = 1.0
+    flattened_inp = inp.view(-1)
+    flattened_target = target.view(-1)
+    flattened_weights = weights.view(-1)
+    flattened_inp = flattened_inp * flattened_weights
+    flattened_target = flattened_target * flattened_weights
+    common = 2 * torch.sum(flattened_target * flattened_inp) + smooth
+    total = torch.sum(flattened_target) + torch.sum(flattened_inp) + smooth
+    return - common / total
 
 
 class DistToBoundary(object):
@@ -100,7 +121,6 @@ class DistToBoundary(object):
                 tmp_sum = np.reshape(row_target, (-1, 1)) - \
                                      np.reshape(rmap[i], (1, -1))
                 row_wt = np.min(np.abs(tmp_sum), axis=1)
-                print(row_wt)
                 row_weight[k, i, :] = row_wt
 
             for j in range(cols):
