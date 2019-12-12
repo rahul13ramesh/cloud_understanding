@@ -120,6 +120,3 @@ class DistToBoundary(object):
             col_weights.append(c)
         return np.array(row_weights), np.array(col_weights)
 
-    def normalizeWeights(self, row_weights, col_weights)
-        row_wts = row_wts
-
