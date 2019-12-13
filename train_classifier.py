@@ -19,7 +19,7 @@ train_num_pts = 4800
 model_string = str(datetime.datetime.now())
 
 model = ConvModel(dropval=0.5, l1=64, l2=128, l3=256)
-#  model = Wide_ResNet(28, 10, 0.5)
+#  model = Wide_ResNet(28, 4, 0.5)
 model = model.cuda()
 summary(model, (3, 140, 210))
 

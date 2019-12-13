@@ -67,7 +67,7 @@ class Wide_ResNet(nn.Module):
         self.layer3 = self._wide_layer(
             wide_basic, nStages[3], n, dropout_rate, stride=2)
         self.bn1 = nn.BatchNorm2d(nStages[3], momentum=0.9)
-        self.linear = nn.Linear(3840, 4)
+        self.linear = nn.Linear(1536, 4)
 
     def _wide_layer(self, block, planes, num_blocks, dropout_rate, stride):
         strides = [stride] + [1]*(int(num_blocks)-1)

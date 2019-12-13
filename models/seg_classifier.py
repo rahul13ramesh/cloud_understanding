@@ -86,7 +86,8 @@ class UNet_classifier(nn.Module):
     def __init__(self, n_channels, n_classes, flag=0):
 
         super(UNet_classifier, self).__init__()
-        l1 = 256
+        l1 = 128
+        l2 = 256
 
         d = 0.5
 
@@ -98,10 +99,13 @@ class UNet_classifier(nn.Module):
 
         self.m = nn.Sequential(
             nn.Dropout(d),
-            convbn(512, l1, 3, 1, 1),
-            convbn(l1, l1, 3, 1, 1),
-            convbn(l1, l1, 3, 1, 1),
+            convbn(64, l1, 3, 2, 1),
             convbn(l1, l1, 3, 2, 1),
+            convbn(l1, l2, 3, 1, 1),
+            nn.AvgPool2d(4),
+            convbn(l2, l2, 3, 1, 1),
+            convbn(l2, l2, 3, 1, 1),
+            convbn(l2, l2, 3, 2, 1),
             View(7168),
             nn.Linear(7168, 4),
             nn.Sigmoid())
@@ -125,10 +129,11 @@ class UNet_classifier(nn.Module):
         x3 = self.down2(x2)
         x4 = self.down3(x3)
         x5 = self.down4(x4)
-        class_out = self.m(x5)
         x = self.up1(x5, x4)
         x = self.up2(x, x3)
         x = self.up3(x, x2)
-        x = self.up4(x, x1)
-        x = self.outc(x)
+        xbar = self.up4(x, x1)
+        #  class_out = self.m(x5)
+        class_out = self.m(xbar)
+        x = self.outc(xbar)
         return x, class_out
