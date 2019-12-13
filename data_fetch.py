@@ -7,8 +7,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import cv2
 
-#  PATH = "/home/rahulram/downloads/data/"
-PATH = "../data/"
+PATH = "/home/rahulram/downloads/data/"
+#  PATH = "../data/"
 
 
 def getImgMask(image_num, seg_labels):
