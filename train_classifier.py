@@ -1,26 +1,32 @@
 import numpy as np
 import pandas as pd
 import torch
+import datetime
 from torch.optim import Adam
 import torch.nn as nn
 from torchsummary import summary
 from loss import dice, dice_pytorch, dice_BCE
 from models.model_classifier import ConvModel
 from data_fetch import get_data
+from models.resnet_models import Wide_ResNet
 
 torch.manual_seed(100)
-num_points_fetch = -1 train_on_gpu = True
+num_points_fetch = -1
+train_on_gpu = True
 n_epochs = 50
 batch_size = 4
 train_num_pts = 4800
+model_string = str(datetime.datetime.now())
 
-model = ConvModel(dropval=0.5, l1=64, l2=128, l3=256)
+#  model = ConvModel(dropval=0.5, l1=64, l2=128, l3=256)
+model = Wide_ResNet(28, 10, 0.5)
 model = model.cuda()
 summary(model, (3, 140, 210))
 
 criterion = nn.BCELoss()
 optimizer = Adam(model.parameters(), lr=0.0004)
 
+print(model_string)
 print("Reading data")
 all_data, _, img_name, class_labels = get_data(num_points_fetch)
 print("Loaded data")
@@ -108,3 +114,4 @@ for epoch in range(1, n_epochs+1):
     train_loss = train_loss / (numpts)
     print("Epoch " + str(epoch) + " loss = " + str(train_loss))
 
+torch.save(model.state_dict(), "checkpoint/classifier-" + model_string + ".ckpt")

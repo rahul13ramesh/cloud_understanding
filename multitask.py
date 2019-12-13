@@ -13,9 +13,9 @@ from data_fetch import get_data
 
 
 train_on_gpu = True
-LOSS_NUM = 0
+LOSS_NUM = 1
 LR = 0.0004
-WT_Classifier = 5
+WT_Classifier = 0.05
 batch_size = 4
 model_string = str(datetime.datetime.now())
 
@@ -136,6 +136,7 @@ for epoch in range(1, n_epochs+1):
 
     dice_val = dice_val / numpts
     test_loss = test_loss / numpts
+    err = err / numpts
     print("Dice: " + str(dice_val))
     print("Loss: " + str(test_loss))
     print("Err: " + str(err))

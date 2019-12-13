@@ -125,7 +125,6 @@ class UNet_classifier(nn.Module):
         x3 = self.down2(x2)
         x4 = self.down3(x3)
         x5 = self.down4(x4)
-        print(x5.shape)
         class_out = self.m(x5)
         x = self.up1(x5, x4)
         x = self.up2(x, x3)
