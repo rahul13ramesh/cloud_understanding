@@ -140,3 +140,29 @@ class DistToBoundary(object):
             col_weights.append(c)
         return np.array(row_weights), np.array(col_weights)
 
+
+def lovasz_hinge_loss(inp, target):
+    """
+        See paper, Algorithm 1 in page 4
+        https://arxiv.org/abs/1705.08790
+    """
+    flattened_inp = inp.view(-1)
+    flattened_target = target.view(-1)
+
+    y_val = 2 * (flattened_target - 0.5)
+    m_val = nn.functional.relu(1. - flattened_inp * flattened_target)
+
+    sorted_m, indices = torch.sort(m_val, dim=0, descending=True,
+                                   output=None)
+    sorted_y = labels[indices]
+
+    # Calculate g_i (from Algorithm 1)
+    p = sorted_y.size()
+    sum_delta = sorted_y.sum()
+    intersection = sum_delta - sorted_y.cumsum(0)
+    union = sum_delta + (1 - sorted_y).cumsum(0)
+    g_val = 1 - intersection / union
+    g_val[1:p] = g_val[1:p] - g_val[0:p-1]
+    loss = (g_val * sorted_m).sum()
+
+    return loss
