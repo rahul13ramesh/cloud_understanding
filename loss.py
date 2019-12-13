@@ -149,19 +149,21 @@ def lovasz_hinge_loss(inp, target):
     flattened_inp = inp.view(-1)
     flattened_target = target.view(-1)
 
-    y_val = 2 * (flattened_target - 0.5)
-    m_val = nn.functional.relu(1. - flattened_inp * flattened_target)
+    signed_y = 2 * (flattened_target - 0.5)
+    m_val = 1 - flattened_inp * signed_y
+    #  m_val = nn.functional.relu(1 - flattened_inp * signed_y)
 
-    sorted_m, indices = torch.sort(m_val, dim=0, descending=True,
-                                   output=None)
-    sorted_y = labels[indices]
+    sorted_m, indices = torch.sort(m_val,  dim=0, descending=True)
+    sorted_y = flattened_target[indices]
 
     # Calculate g_i (from Algorithm 1)
-    p = sorted_y.size()
-    sum_delta = sorted_y.sum()
+    p = list(sorted_y.size())[0]
+    sum_delta = torch.sum(sorted_y)
+
     intersection = sum_delta - sorted_y.cumsum(0)
     union = sum_delta + (1 - sorted_y).cumsum(0)
-    g_val = 1 - intersection / union
+
+    g_val = 1 - (intersection / union)
     g_val[1:p] = g_val[1:p] - g_val[0:p-1]
     loss = (g_val * sorted_m).sum()
 

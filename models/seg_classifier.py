@@ -1,7 +1,5 @@
 import torch
-import torchvision
 import torch.nn as nn
-import torch.optim as optim
 import torch.nn.functional as F
 
 
@@ -32,10 +30,20 @@ class inconv(nn.Module):
         return x
 
 
+class View(nn.Module):
+    def __init__(self, o):
+        super().__init__()
+        self.o = o
+
+    def forward(self, x):
+        return x.view(-1, self.o)
+
+
 class down(nn.Module):
     def __init__(self, in_ch, out_ch):
         super(down, self).__init__()
-        self.mpconv = nn.Sequential(nn.MaxPool2d(2), double_conv(in_ch, out_ch))
+        self.mpconv = nn.Sequential(nn.MaxPool2d(2),
+                                    double_conv(in_ch, out_ch))
 
     def forward(self, x):
         x = self.mpconv(x)
@@ -47,7 +55,8 @@ class up(nn.Module):
         super(up, self).__init__()
 
         if bilinear:
-            self.up = nn.Upsample(scale_factor=2, mode="bilinear", align_corners=True)
+            self.up = nn.Upsample(scale_factor=2, mode="bilinear",
+                                  align_corners=True)
         else:
             self.up = nn.ConvTranspose2d(in_ch // 2, in_ch // 2, 2, stride=2)
 
@@ -57,7 +66,8 @@ class up(nn.Module):
         x1 = self.up(x1)
         diffY = x2.size()[2] - x1.size()[2]
         diffX = x2.size()[3] - x1.size()[3]
-        x1 = F.pad(x1, (diffX // 2, diffX - diffX // 2, diffY // 2, diffY - diffY // 2))
+        x1 = F.pad(x1, (diffX // 2, diffX - diffX //
+                        2, diffY // 2, diffY - diffY // 2))
         x = torch.cat([x2, x1], dim=1)
         return self.conv(x)
 
@@ -72,9 +82,30 @@ class outconv(nn.Module):
         return x
 
 
-class UNet(nn.Module):
+class UNet_classifier(nn.Module):
     def __init__(self, n_channels, n_classes, flag=0):
-        super(UNet, self).__init__()
+
+        super(UNet_classifier, self).__init__()
+        l1 = 256
+
+        d = 0.5
+
+        def convbn(ci, co, ksz, s=1, pz=0):
+            return nn.Sequential(
+                nn.Conv2d(ci, co, ksz, stride=s, padding=pz),
+                nn.ReLU(True),
+                nn.BatchNorm2d(co))
+
+        self.m = nn.Sequential(
+            nn.Dropout(d),
+            convbn(512, l1, 3, 1, 1),
+            convbn(l1, l1, 3, 1, 1),
+            convbn(l1, l1, 3, 1, 1),
+            convbn(l1, l1, 3, 2, 1),
+            View(7168),
+            nn.Linear(7168, 4),
+            nn.Sigmoid())
+
         self.flag = flag
         self.inc = inconv(n_channels, 64)
         self.down1 = down(64, 128)
@@ -94,20 +125,11 @@ class UNet(nn.Module):
         x3 = self.down2(x2)
         x4 = self.down3(x3)
         x5 = self.down4(x4)
+        print(x5.shape)
+        class_out = self.m(x5)
         x = self.up1(x5, x4)
         x = self.up2(x, x3)
         x = self.up3(x, x2)
         x = self.up4(x, x1)
         x = self.outc(x)
-        if self.flag == 0:
-            return torch.sigmoid(x)
-        else:
-            return x, torch.sigmoid(x)
-
-
-class FullyConv(nn.Module):
-    def __init__(self, n_channels=3, n_classes=4):
-        super(FullyConv, self).__init__()
-
-    def forward(self, x):
-        return torch.sigmoid(x) 
+        return x, class_out
