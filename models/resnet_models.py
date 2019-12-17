@@ -1,3 +1,7 @@
+"""
+Code is modified version of:
+https://github.com/meliketoy/wide-resnet.pytorch
+"""
 import torch
 import torch.nn as nn
 import torch.nn.init as init

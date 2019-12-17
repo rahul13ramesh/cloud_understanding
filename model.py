@@ -1,3 +1,7 @@
+"""
+Architecture is loosely based on:
+https://www.kaggle.com/artgor/segmentation-in-pytorch-using-convenient-tools
+"""
 import torch
 import torchvision
 import torch.nn as nn
